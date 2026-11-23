@@ -1,0 +1,165 @@
+<Window x:Class="Grain.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:local="using:Grain" Title="Segment Every Grain">
+ <Grid x:Name="Root" Background="#F5F6F2" RequestedTheme="Light">
+  <Grid.RowDefinitions><RowDefinition Height="42"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto" MinHeight="34"/></Grid.RowDefinitions>
+  <Grid x:Name="TitleDrag" Background="Transparent" Padding="22,0,150,0">
+   <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+    <TextBlock Text="Segment Every Grain" FontSize="12" FontWeight="SemiBold" Foreground="#405349"/>
+    <TextBlock Text="/" Foreground="#B0BBB3"/>
+    <TextBlock Text="Image analysis workspace" FontSize="12" Foreground="#758178"/>
+   </StackPanel>
+  </Grid>
+  <Grid Grid.Row="1" Margin="24,10,24,20" ColumnSpacing="24">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <StackPanel Spacing="4">
+    <TextBlock Text="A CLOSER LOOK AT EVERY GRAIN" Style="{StaticResource Eyebrow}"/>
+    <TextBlock Text="From image to insight." FontSize="28" FontWeight="SemiBold" Foreground="#193C30"/>
+   </StackPanel>
+   <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+    <Button x:Name="OpenButton" Click="Open_Click" ToolTipService.ToolTip="Open an image · Ctrl+O">
+     <Button.KeyboardAccelerators><KeyboardAccelerator Key="O" Modifiers="Control"/></Button.KeyboardAccelerators>
+     <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xE8E5;" FontSize="15"/><TextBlock Text="Open image"/></StackPanel>
+    </Button>
+    <Button x:Name="ProjectButton" Click="Project_Click" Content="Open project"><Button.KeyboardAccelerators><KeyboardAccelerator Key="O" Modifiers="Control,Shift"/></Button.KeyboardAccelerators></Button>
+    <Button x:Name="SaveButton" Click="Save_Click" ToolTipService.ToolTip="Save image, masks, CSV and project · Ctrl+S">
+     <Button.KeyboardAccelerators><KeyboardAccelerator Key="S" Modifiers="Control"/></Button.KeyboardAccelerators>
+     <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xE74E;" FontSize="15"/><TextBlock Text="Save project"/></StackPanel>
+    </Button>
+    <Button ToolTipService.ToolTip="Workspace options" AutomationProperties.Name="Workspace options" Padding="10">
+     <FontIcon Glyph="&#xE713;" FontSize="16"/>
+     <Button.Flyout><MenuFlyout><MenuFlyoutItem Text="Save project as…" Click="SaveAs_Click"/><MenuFlyoutItem Text="Open saved results folder" Click="ResultsFolder_Click"/><MenuFlyoutSeparator/><MenuFlyoutItem Text="Machine setup" Click="Setup_Click"/><MenuFlyoutItem Text="About Segment Every Grain" Click="About_Click"/></MenuFlyout></Button.Flyout>
+    </Button>
+   </StackPanel>
+  </Grid>
+  <Grid Grid.Row="2" Margin="24,0,24,0" ColumnSpacing="18">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="254"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <Border Background="#FFFFFF" CornerRadius="12" BorderBrush="#E2E8DF" BorderThickness="1">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+     <StackPanel Padding="18" Spacing="16">
+      <StackPanel Spacing="5"><TextBlock Text="01 / ANALYZE" Style="{StaticResource Eyebrow}"/><TextBlock Text="Find the boundaries" Style="{StaticResource SectionTitle}"/></StackPanel>
+      <ComboBox x:Name="ModelChoice" Header="Segmentation model" HorizontalAlignment="Stretch" SelectedIndex="0">
+       <ComboBoxItem Content="Detailed · SAM 2.1 Large" Tag="large"/><ComboBoxItem Content="Fast · SAM 2.1 Tiny" Tag="tiny"/>
+      </ComboBox>
+      <NumberBox x:Name="MinimumArea" Header="Minimum grain area (px²)" Value="50" Minimum="1" SpinButtonPlacementMode="Compact" SmallChange="10"/>
+      <ComboBox x:Name="DeviceChoice" Header="Processing device" HorizontalAlignment="Stretch" SelectedIndex="0">
+       <ComboBoxItem x:Name="GpuDevice" Content="GPU · DirectML" Tag="directml"/><ComboBoxItem Content="CPU" Tag="cpu"/>
+      </ComboBox>
+      <Button x:Name="SegmentButton" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Stretch" Click="Segment_Click" Padding="12,12" CornerRadius="8">
+       <StackPanel Orientation="Horizontal" Spacing="9"><SymbolIcon Symbol="Crop"/><TextBlock Text="Segment image" FontWeight="SemiBold"/></StackPanel>
+      </Button>
+      <Button x:Name="ManualButton" Content="Start with an empty canvas" HorizontalAlignment="Stretch" Click="Manual_Click"/>
+      <Border Height="1" Background="#ECF0E8" Margin="0,2"/>
+      <StackPanel Spacing="5"><TextBlock Text="02 / REFINE" Style="{StaticResource Eyebrow}"/><TextBlock Text="Make it precise" Style="{StaticResource SectionTitle}"/></StackPanel>
+      <StackPanel x:Name="EditTools" Spacing="10">
+       <TextBlock Text="Select in the image or table. Hold Ctrl to select multiple grains." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource QuietBrush}"/>
+       <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+        <Button x:Name="DeleteButton" Content="Delete" Click="Delete_Click" HorizontalAlignment="Stretch" ToolTipService.ToolTip="Delete selected grains · Delete"/>
+        <Button x:Name="MergeButton" Grid.Column="1" Content="Merge" Click="Merge_Click" HorizontalAlignment="Stretch" ToolTipService.ToolTip="Merge touching selected grains"/>
+       </Grid>
+       <Expander x:Name="PromptExpander" Header="Correct an outline" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+        <StackPanel Spacing="10">
+         <TextBlock Text="Delete the old mask. Mark points inside the grain and outside its boundary." FontSize="12" TextWrapping="Wrap"/>
+         <Button Content="Create from points" Click="Create_Click" HorizontalAlignment="Stretch"/>
+         <Button Content="Clear points" Click="ClearPoints_Click" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+       </Expander>
+      </StackPanel>
+      <Border Height="1" Background="#ECF0E8" Margin="0,2"/>
+      <StackPanel Spacing="5"><TextBlock Text="03 / CALIBRATE" Style="{StaticResource Eyebrow}"/><TextBlock Text="Put size in context" Style="{StaticResource SectionTitle}"/></StackPanel>
+      <StackPanel x:Name="CalibrationTools" Spacing="10">
+       <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="70"/></Grid.ColumnDefinitions>
+        <NumberBox x:Name="ReferenceLength" Header="Known length" Value="10" Minimum="0.000001"/>
+        <ComboBox x:Name="UnitChoice" Header="Unit" Grid.Column="1" SelectedIndex="0" HorizontalAlignment="Stretch"><ComboBoxItem Content="mm"/><ComboBoxItem Content="cm"/></ComboBox>
+       </Grid>
+       <Button x:Name="RulerButton" Click="Ruler_Click" HorizontalAlignment="Stretch"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xE8EF;" FontSize="15"/><TextBlock Text="Draw reference"/></StackPanel></Button>
+       <Button Content="Apply length to reference" Click="ApplyCalibration_Click" HorizontalAlignment="Stretch"/>
+       <TextBlock x:Name="CalibrationLabel" Text="No reference yet · sizes in pixels" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource QuietBrush}"/>
+       <HyperlinkButton Content="Remove calibration" Click="ClearCalibration_Click" Padding="0" HorizontalAlignment="Left" FontSize="12"/>
+      </StackPanel>
+     </StackPanel>
+    </ScrollViewer>
+   </Border>
+   <Grid Grid.Column="1" x:Name="WorkspaceGrid" RowSpacing="0">
+    <Grid.RowDefinitions><RowDefinition Height="*" MinHeight="210"/><RowDefinition Height="12"/><RowDefinition Height="260" MinHeight="150"/></Grid.RowDefinitions>
+    <Border Background="White" BorderBrush="#E2E8DF" BorderThickness="1" CornerRadius="12">
+     <Grid>
+      <Grid.RowDefinitions><RowDefinition Height="56"/><RowDefinition Height="*"/><RowDefinition Height="46"/></Grid.RowDefinitions>
+      <Grid Margin="16,0" ColumnSpacing="14">
+       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <StackPanel VerticalAlignment="Center" Spacing="2"><TextBlock x:Name="ImageTitle" Text="Your next discovery starts here" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="ImageMeta" Text="JPG, PNG, TIFF or BMP" Foreground="{StaticResource QuietBrush}" FontSize="11"/></StackPanel>
+       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <ToggleSwitch x:Name="OverlaySwitch" AutomationProperties.Name="Show grain outlines" IsOn="True" Toggled="Overlay_Toggled" MinWidth="0" OffContent="Outlines" OnContent="Outlines" FontSize="12"/>
+        <ToggleSwitch x:Name="FillSwitch" AutomationProperties.Name="Show colored grain fills" IsOn="False" Toggled="Fill_Toggled" MinWidth="0" OffContent="Color fill" OnContent="Color fill" FontSize="12"/>
+        <Button Click="Fit_Click" Content="Fit" ToolTipService.ToolTip="Fit image to view · F" Padding="10,5"/>
+        <TextBlock x:Name="ZoomLabel" Text="100%" FontSize="12" Width="40" VerticalAlignment="Center" Foreground="{StaticResource QuietBrush}"/>
+       </StackPanel>
+      </Grid>
+      <local:GrainCanvas x:Name="Editor" Grid.Row="1"/>
+      <Border x:Name="EmptyState" Grid.Row="1" Background="#F4F6F1">
+       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" MaxWidth="390">
+        <FontIcon Glyph="&#xEB9F;" FontSize="44" Foreground="#8B9E8D" Margin="0,0,0,8"/>
+        <TextBlock Text="Small details. Meaningful measurements." FontSize="20" FontWeight="SemiBold" TextAlignment="Center" Foreground="#274936" TextWrapping="Wrap"/>
+        <TextBlock Text="Open a grain image to find boundaries, refine individual masks and explore their measurements." TextWrapping="Wrap" TextAlignment="Center" Foreground="{StaticResource QuietBrush}" FontSize="13" LineHeight="21"/>
+        <Button Click="Open_Click" Content="Choose an image" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+       </StackPanel>
+      </Border>
+      <Grid Grid.Row="2" Margin="10,0" ColumnSpacing="8">
+       <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <StackPanel Orientation="Horizontal" Spacing="4" x:Name="CanvasTools">
+        <ToggleButton x:Name="SelectTool" AutomationProperties.Name="Select grains" IsChecked="True" Tag="select" Click="Tool_Click" ToolTipService.ToolTip="Select grains · V" Padding="9,6"><FontIcon Glyph="&#xE8B0;" FontSize="15"/></ToggleButton>
+        <ToggleButton x:Name="PanTool" AutomationProperties.Name="Pan image" Tag="pan" Click="Tool_Click" ToolTipService.ToolTip="Pan image · H" Padding="9,6"><FontIcon Glyph="&#xE7C9;" FontSize="15"/></ToggleButton>
+        <ToggleButton x:Name="AddTool" AutomationProperties.Name="Add grain" Tag="add" Click="Tool_Click" ToolTipService.ToolTip="Add a grain with one click · A" Padding="9,6"><FontIcon Glyph="&#xE710;" FontSize="15"/></ToggleButton>
+        <ToggleButton x:Name="ForegroundTool" AutomationProperties.Name="Foreground points" Tag="foreground" Click="Tool_Click" ToolTipService.ToolTip="Foreground point · inside the grain" Padding="9,6"><FontIcon Glyph="&#xE8FB;" FontSize="15"/></ToggleButton>
+        <ToggleButton x:Name="BackgroundTool" AutomationProperties.Name="Background points" Tag="background" Click="Tool_Click" ToolTipService.ToolTip="Background point · outside the grain" Padding="9,6"><FontIcon Glyph="&#xE738;" FontSize="15"/></ToggleButton>
+       </StackPanel>
+       <TextBlock x:Name="ToolHint" Grid.Column="1" Text="Select grains" VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource QuietBrush}" TextTrimming="CharacterEllipsis"/>
+       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2">
+        <Button x:Name="UndoButton" AutomationProperties.Name="Undo" Click="Undo_Click" ToolTipService.ToolTip="Undo · Ctrl+Z" Padding="9,6"><FontIcon Glyph="&#xE7A7;" FontSize="15"/></Button>
+        <Button x:Name="RedoButton" AutomationProperties.Name="Redo" Click="Redo_Click" ToolTipService.ToolTip="Redo · Ctrl+Y" Padding="9,6"><FontIcon Glyph="&#xE7A6;" FontSize="15"/></Button>
+       </StackPanel>
+      </Grid>
+     </Grid>
+    </Border>
+    <Border Grid.Row="1" Background="Transparent" PointerPressed="Divider_Pressed" PointerMoved="Divider_Moved" PointerReleased="Divider_Released">
+     <Border Width="32" Height="3" Background="#C5CFC3" CornerRadius="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Border>
+    <Border Grid.Row="2" Background="White" BorderBrush="#E2E8DF" BorderThickness="1" CornerRadius="12">
+     <Grid>
+      <Grid.RowDefinitions><RowDefinition Height="62"/><RowDefinition Height="*"/><RowDefinition Height="30"/></Grid.RowDefinitions>
+      <Grid Margin="16,0" ColumnSpacing="12">
+       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <StackPanel VerticalAlignment="Center" Spacing="3"><TextBlock Text="Grain measurements" FontSize="15" FontWeight="SemiBold"/><TextBlock x:Name="TableSubtitle" Text="Your measurements will appear after segmentation" FontSize="11" Foreground="{StaticResource QuietBrush}"/></StackPanel>
+       <ToggleButton x:Name="SelectedOnly" Grid.Column="1" Content="Selected only" Click="SelectedOnly_Click" VerticalAlignment="Center" Padding="10,7"/>
+       <Button x:Name="ExportButton" Grid.Column="2" Click="Export_Click" VerticalAlignment="Center" Padding="12,7"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon Glyph="&#xE896;" FontSize="14"/><TextBlock Text="Export CSV"/></StackPanel></Button>
+      </Grid>
+      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
+       <Grid x:Name="TableGrid"><Grid.RowDefinitions><RowDefinition Height="32"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Grid x:Name="TableHeader" Background="#F3F6F0"/>
+        <ListView x:Name="Measurements" Grid.Row="1" SelectionMode="Extended" IsMultiSelectCheckBoxEnabled="False" SelectionChanged="Table_SelectionChanged" IsItemClickEnabled="True" ItemClick="Table_ItemClick" Padding="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+         <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="0"/><Setter Property="MinHeight" Value="32"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style></ListView.ItemContainerStyle>
+        </ListView>
+       </Grid>
+      </ScrollViewer>
+      <TextBlock x:Name="EmptyTable" Grid.Row="1" Text="No grains to measure yet" Foreground="#87948A" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" IsHitTestVisible="False"/>
+      <Grid Grid.Row="2" Margin="16,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <TextBlock x:Name="TableFootnote" Text="Sizes in pixels until you draw a ruler reference" Foreground="{StaticResource QuietBrush}" FontSize="10" VerticalAlignment="Center"/>
+       <TextBlock Grid.Column="1" Text="Click a heading to sort" Foreground="{StaticResource QuietBrush}" FontSize="10" VerticalAlignment="Center"/>
+      </Grid>
+     </Grid>
+    </Border>
+   </Grid>
+  </Grid>
+  <Grid Grid.Row="3" Margin="26,8,26,8" ColumnSpacing="14">
+   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock x:Name="StatusLabel" Text="Connecting to the local processing engine…" FontSize="11" Foreground="{StaticResource QuietBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+   <TextBlock x:Name="ProgressTiming" Grid.Column="1" FontSize="11" Foreground="#176B59" VerticalAlignment="Center" Text="Estimating time remaining…" Visibility="Collapsed"/>
+   <TextBlock x:Name="EngineLabel" Grid.Column="2" Text="LOCAL PROCESSING" Style="{StaticResource Eyebrow}" VerticalAlignment="Center"/>
+   <ProgressBar x:Name="OperationBar" Grid.Row="1" Grid.ColumnSpan="3" Minimum="0" Maximum="100" Height="5" Margin="0,7,0,0" IsIndeterminate="True" Visibility="Collapsed" AutomationProperties.Name="Processing progress"/>
+   <TextBlock x:Name="ProgressElapsed" Grid.Row="2" Grid.ColumnSpan="3" Text="Elapsed 0s" FontSize="10" Foreground="{StaticResource QuietBrush}" Margin="0,4,0,0" Visibility="Collapsed"/>
+  </Grid>
+  <InfoBar x:Name="Notice" Grid.Row="2" IsOpen="False" Severity="Error" VerticalAlignment="Top" HorizontalAlignment="Center" MaxWidth="750" Margin="300,8,24,0"/>
+ </Grid>
+</Window>

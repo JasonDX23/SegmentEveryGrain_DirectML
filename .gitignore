@@ -1,0 +1,44 @@
+# Published applications belong in GitHub Releases, not source history.
+/WinUI/
+/Segment Every Grain.exe
+/Machine Setup.exe
+*.zip
+*.7z
+
+# Build tools, generated files and local Python environments.
+/.tools/
+**/bin/
+**/obj/
+.vs/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.user
+*.suo
+
+# Downloaded models and package archives.
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.whl
+
+# Local images/results, recovery copies, diagnostic output and machine reports.
+/Recovered Projects/
+/backups/
+/verification/
+*.log
+/validation.json
+/setup_validation.json
+/winui-validation.json
+/verify_ui.py
+/verify_segmentation.py
+/REHEARSAL.md
+
+# Credentials and OS metadata.
+.env
+.env.*
+!.env.example
+Thumbs.db
+Desktop.ini
